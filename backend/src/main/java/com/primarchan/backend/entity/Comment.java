@@ -7,34 +7,34 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-public class User implements UserDetails {
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Lob
     @Column(nullable = false)
-    private String username;
+    private String content;
 
+    @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private User author;
+
+    @ManyToOne
     @JsonIgnore
-    @Column(nullable = false)
-    private String password;
+    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Article article;
 
-    @JsonIgnore
     @Column(nullable = false)
-    private String email;
-
-    private LocalDateTime lastLogin;
+    private Boolean isDeleted = false;
 
     @CreatedDate
     @Column(insertable = true)
@@ -51,31 +51,6 @@ public class User implements UserDetails {
     @PreUpdate
     protected void onUpdate() {
         this.updatedDate = LocalDateTime.now();
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return false;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
     }
 
 }

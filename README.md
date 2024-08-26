@@ -12,7 +12,7 @@
 - Spring Web
 - Spring Data JPA
 - MySQL 8.0.3
-- MongoDN
+- MongoDB
 - Docker
 - ElasticSearch
 - Redis
