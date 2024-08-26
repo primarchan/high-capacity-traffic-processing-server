@@ -34,6 +34,7 @@ public class Article {
     private User author;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Board board;
 

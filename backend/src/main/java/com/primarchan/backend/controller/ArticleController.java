@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/boards")
 @RequiredArgsConstructor
@@ -24,6 +26,23 @@ public class ArticleController {
         Article article = articleService.writeArticle(writeArticleDto);
 
         return ResponseEntity.ok(article);
+    }
+
+    @GetMapping("/{boardId}/articles")
+    public ResponseEntity<List<Article>> getArticles(
+            @PathVariable Long boardId,
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(required = false) Long firstId
+    ) {
+        if (lastId != null) {
+            return ResponseEntity.ok(articleService.getOldArticle(boardId, lastId));
+        }
+
+        if (firstId != null) {
+            return ResponseEntity.ok(articleService.getNewArticle(boardId, firstId));
+        }
+
+         return ResponseEntity.ok(articleService.firstGetArticle(boardId));
     }
 
 }
