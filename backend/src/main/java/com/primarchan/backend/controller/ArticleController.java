@@ -1,15 +1,13 @@
 package com.primarchan.backend.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.primarchan.backend.dto.EditArticleDto;
 import com.primarchan.backend.dto.WriteArticleDto;
 import com.primarchan.backend.entity.Article;
-import com.primarchan.backend.entity.User;
 import com.primarchan.backend.service.ArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,8 +20,11 @@ public class ArticleController {
     private final AuthenticationManager authenticationManager;
 
      @PostMapping("/{boardId}/articles")
-    public ResponseEntity<Article> writeArticle(@RequestBody WriteArticleDto writeArticleDto) {
-        Article article = articleService.writeArticle(writeArticleDto);
+    public ResponseEntity<Article> writeArticle(
+            @PathVariable Long boardId,
+            @RequestBody WriteArticleDto writeArticleDto
+     ) {
+        Article article = articleService.writeArticle(boardId, writeArticleDto);
 
         return ResponseEntity.ok(article);
     }
@@ -43,6 +44,15 @@ public class ArticleController {
         }
 
          return ResponseEntity.ok(articleService.firstGetArticle(boardId));
+    }
+
+    @PutMapping("/{boardId}/articles/{articleId}")
+    public ResponseEntity<Article> editArticle(
+            @PathVariable Long boardId,
+            @PathVariable Long articleId,
+            @RequestBody EditArticleDto editArticleDto
+    ) throws JsonProcessingException {
+         return ResponseEntity.ok(articleService.editArticle(boardId, articleId, editArticleDto));
     }
 
 }
