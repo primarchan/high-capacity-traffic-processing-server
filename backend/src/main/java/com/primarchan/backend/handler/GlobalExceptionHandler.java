@@ -1,5 +1,6 @@
 package com.primarchan.backend.handler;
 
+import com.primarchan.backend.exception.ForbiddenException;
 import com.primarchan.backend.exception.RateLimitException;
 import com.primarchan.backend.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RateLimitException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String handlerResourceNotFoundException(RateLimitException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public String handlerResourceNotFoundException(ForbiddenException ex) {
         return ex.getMessage();
     }
 

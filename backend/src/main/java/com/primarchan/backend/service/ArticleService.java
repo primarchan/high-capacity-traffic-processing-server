@@ -6,6 +6,7 @@ import com.primarchan.backend.dto.WriteArticleDto;
 import com.primarchan.backend.entity.Article;
 import com.primarchan.backend.entity.Board;
 import com.primarchan.backend.entity.User;
+import com.primarchan.backend.exception.ForbiddenException;
 import com.primarchan.backend.exception.RateLimitException;
 import com.primarchan.backend.exception.ResourceNotFoundException;
 import com.primarchan.backend.repository.ArticleRepository;
@@ -103,6 +104,35 @@ public class ArticleService {
         articleRepository.save(article);
 
         return article;
+    }
+
+    @Transactional
+    public boolean deleteArticle(Long boardId, Long articleId) throws JsonProcessingException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        User author = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
+
+        if (article.getAuthor() != author) {
+            throw new ForbiddenException("Article author different");
+        }
+
+        if (!this.isCanEditArticle()) {
+            throw new RateLimitException("Article not edited by rate limit");
+        }
+
+        article.setIsDeleted(true);
+
+        articleRepository.save(article);
+
+        return true;
     }
 
     private boolean isCanWriteArticle() {
