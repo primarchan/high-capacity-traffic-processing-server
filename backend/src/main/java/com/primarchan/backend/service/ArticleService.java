@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -70,6 +69,8 @@ public class ArticleService {
     public List<Article> getNewArticle(Long boardId, Long articleId) {
         return articleRepository.findTop10ByBoardIdAndArticleIdGreaterThanOrderByCreatedDateDesc(boardId, articleId);
     }
+
+
 
     @Transactional
     public Article editArticle(Long boardId, Long articleId, EditArticleDto dto) throws JsonProcessingException {

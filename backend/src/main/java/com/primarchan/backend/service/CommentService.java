@@ -178,19 +178,18 @@ public class CommentService {
     @Async
     @Transactional
     protected CompletableFuture<Article> getArticle(Long boardId, Long articleId) throws JsonProcessingException {
-        Optional<Board> board = boardRepository.findById(boardId);
-        if (board.isEmpty()) {
-            throw new ResourceNotFoundException("board not found");
-        }
-        Optional<Article> article = articleRepository.findById(articleId);
-        if (article.isEmpty() || article.get().getIsDeleted()) {
-            throw new ResourceNotFoundException("article not found");
-        }
-        article.get().setViewCount(article.get().getViewCount() + 1);
-        articleRepository.save(article.get());
-        String articleJson = objectMapper.writeValueAsString(article.get());
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Board not found"));
+
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
+
+//        article.setViewCount(article.getViewCount() + 1);
+//        articleRepository.save(article);
+
+//        String articleJson = objectMapper.writeValueAsString(article);
 //        elasticSearchService.indexArticleDocument(article.get().getId().toString(), articleJson).block();
-        return CompletableFuture.completedFuture(article.get());
+        return CompletableFuture.completedFuture(article);
     }
 
     @Async

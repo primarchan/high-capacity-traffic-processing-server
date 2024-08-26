@@ -41,7 +41,7 @@ public class CommentController {
     ) {
         commentService.deleteComment(boardId, articleId, commentId);
 
-        return ResponseEntity.ok("comment is deleted");
+        return ResponseEntity.ok("Comment is deleted");
     }
 
 }
