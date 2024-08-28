@@ -1,6 +1,7 @@
 package com.primarchan.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.primarchan.backend.dto.EditArticleDto;
 import com.primarchan.backend.dto.WriteArticleDto;
 import com.primarchan.backend.entity.Article;
@@ -18,23 +19,27 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
 
+    private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final ArticleRepository articleRepository;
+    private final ElasticSearchService elasticSearchService;
 
     @Transactional
-    public Article writeArticle(Long boardId, WriteArticleDto dto) {
+    public Article writeArticle(Long boardId, WriteArticleDto dto) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
@@ -54,6 +59,8 @@ public class ArticleService {
         article.setTitle(dto.getTitle());
         article.setContent(dto.getContent());
         articleRepository.save(article);
+
+        this.indexArticle(article);
 
         return article;
     }
@@ -86,9 +93,9 @@ public class ArticleService {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
 
-//        if (article.getAuthor() != author) {
-//            throw new ForbiddenException("article author different");
-//        }
+        if (article.getAuthor() != author) {
+            throw new ForbiddenException("Article author different");
+        }
 
         if (!this.isCanEditArticle()) {
             throw new RateLimitException("Article not edited by rate limit");
@@ -103,6 +110,7 @@ public class ArticleService {
         }
 
         articleRepository.save(article);
+        this.indexArticle(article);
 
         return article;
     }
@@ -130,8 +138,8 @@ public class ArticleService {
         }
 
         article.setIsDeleted(true);
-
         articleRepository.save(article);
+        this.indexArticle(article);
 
         return true;
     }
@@ -164,6 +172,22 @@ public class ArticleService {
         Duration duration = Duration.between(localDateTime, dateAsLocalDateTime);
 
         return Math.abs(duration.toMinutes()) > 5;
+    }
+
+    public String indexArticle(Article article) throws JsonProcessingException {
+        String articleJson = objectMapper.writeValueAsString(article);
+
+        return elasticSearchService.indexArticleDocument(article.getId().toString(), articleJson).block();
+    }
+
+    public List<Article> searchArticle(String keyword) {
+        Mono<List<Long>> articleIds = elasticSearchService.articleSearch(keyword);
+
+        try {
+            return articleRepository.findAllById(articleIds.toFuture().get());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

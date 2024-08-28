@@ -40,7 +40,7 @@ public class CommentService {
     private final BoardRepository boardRepository;
     private final ArticleRepository articleRepository;
     private final CommentRepository commentRepository;
-//    private final ElasticSearchService elasticSearchService;
+    private final ElasticSearchService elasticSearchService;
 
     @Transactional
     public Comment writeComment(Long boardId, Long articleId, WriteCommentDto dto) {
@@ -184,11 +184,11 @@ public class CommentService {
         Article article = articleRepository.findById(articleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
 
-//        article.setViewCount(article.getViewCount() + 1);
-//        articleRepository.save(article);
+        article.setViewCount(article.getViewCount() + 1);
+        articleRepository.save(article);
+        String articleJson = objectMapper.writeValueAsString(article);
+        elasticSearchService.indexArticleDocument(article.getId().toString(), articleJson).block();
 
-//        String articleJson = objectMapper.writeValueAsString(article);
-//        elasticSearchService.indexArticleDocument(article.get().getId().toString(), articleJson).block();
         return CompletableFuture.completedFuture(article);
     }
 

@@ -27,7 +27,7 @@ public class ArticleController {
     public ResponseEntity<Article> writeArticle(
             @PathVariable Long boardId,
             @RequestBody WriteArticleDto writeArticleDto
-     ) {
+     ) throws JsonProcessingException {
         Article article = articleService.writeArticle(boardId, writeArticleDto);
 
         return ResponseEntity.ok(article);
@@ -48,6 +48,18 @@ public class ArticleController {
         }
 
          return ResponseEntity.ok(articleService.firstGetArticle(boardId));
+    }
+
+    @GetMapping("/{boardId}/articles/search")
+    public ResponseEntity<List<Article>> searchArticles(
+            @PathVariable Long boardId,
+            @RequestParam(required = false) String keyword
+    ) {
+        if (keyword != null) {
+            return ResponseEntity.ok(articleService.searchArticle(keyword));
+        }
+
+        return ResponseEntity.ok(articleService.firstGetArticle(boardId));
     }
 
     @PutMapping("/{boardId}/articles/{articleId}")
